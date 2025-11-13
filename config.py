@@ -10,6 +10,7 @@ FEATURE_COLUMNS = [
 ]
 
 DECISION_TREE_MODEL = "models/decision_tree_model.pkl"
+LABEL_ENCODER_PATH = 'models/label_encoder.pkl'
 
 TEST_SIZE = 0.2
 RANDOM_STATE = 42

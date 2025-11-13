@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Species Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4; /* Light gray background */
+            min-height: 100vh;
+            padding: 10px; /* Reduced padding */
+        }
+        .container {
+            max-width: 600px; /* Smaller width */
+            margin: 20px auto; /* Added margin to the top and bottom */
+            background: white;
+            border-radius: 8px; /* Softer corners */
+            padding: 20px; /* Reduced padding */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Lighter shadow */
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 5px; /* Reduced margin */
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px; /* Reduced margin */
+        }
+        .form-group {
+            margin-bottom: 15px; /* Reduced margin */
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px; /* Reduced padding */
+            border: 1px solid #ccc; /* Simpler border */
+            border-radius: 4px; /* Softer corners */
+            font-size: 16px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #555; /* Simpler focus color */
+        }
+        button {
+            width: 100%;
+            padding: 10px; /* Reduced padding */
+            background: #333; /* Darker button color */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s; /* Simpler transition */
+        }
+        button:hover {
+            background: #555;
+        }
+        .results {
+            margin-top: 20px;
+            display: none;
+        }
+        .result-card {
+            background: #fff;
+            padding: 10px; /* Reduced padding */
+            border-radius: 4px;
+            margin-bottom: 8px; /* Reduced margin */
+            border: 1px solid #ccc; /* Simpler border */
+        }
+        .result-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .result-value {
+            font-size: 20px; /* Smaller font size */
+            color: #333;
+            font-weight: bold;
+        }
+        .error {
+            background: #fdd; /* Simpler error color */
+            border-left: 4px solid #d00;
+            color: #c00;
+        }
+        .loading {
+            text-align: center;
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Flower Species Prediction</h1>
+        <p class="subtitle">Predicting: {{ target_column }}</p>
+        <form id="predictionForm">
+            {% for feature in feature_columns %}
+            <div class="form-group">
+                <label for="{{ feature }}">{{ feature }}:</label>
+                <input type="number" step="0.01" id="{{ feature }}" name="{{ feature }}" required>
+            </div>
+            {% endfor %}
+            <button type="submit">Get Predictions</button>
+        </form>
+        <div class="loading" id="loading">
+            <p>Making predictions...</p>
+        </div>
+        <div class="results" id="results"></div>
+    </div>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                loading.style.display = 'none';
+                if (data.error) {
+                    results.innerHTML = `
+                        <div class="result-card error">
+                            <div class="result-title">Error</div>
+                            <div>${data.error}</div>
+                        </div>
+                    `;
+                } else {
+                    let html = '<h2 style="margin-bottom: 10px;">Predictions:</h2>';
+                    for (const [model, prediction] of Object.entries(data.predictions)) {
+                        html += `
+                            <div class="result-card">
+                                <div class="result-title">${model}</div>
+                                <div class="result-value">${prediction}</div>
+                            </div>
+                        `;
+                    }
+                    results.innerHTML = html;
+                }
+                results.style.display = 'block';
+            } catch (error) {
+                loading.style.display = 'none';
+                results.innerHTML = `
+                    <div class="result-card error">
+                        <div class="result-title">Error</div>
+                        <div>Failed to get predictions: ${error.message}</div>
+                    </div>
+                `;
+                results.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
