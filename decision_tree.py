@@ -5,6 +5,8 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 import config
+from sklearn.preprocessing import LabelEncoder 
+
 
 
 def train_model():
@@ -17,17 +19,20 @@ def train_model():
     
     X = df[config.FEATURE_COLUMNS]
     y = df[config.TARGET_COLUMN]
+
+    le = LabelEncoder()
+    y_encoded = le.fit_transform(y)
     
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=config.TEST_SIZE, random_state=config.RANDOM_STATE
+    X_train, X_test, y_train_encoded, y_test_encoded = train_test_split(
+        X, y_encoded, test_size=0.2, random_state=42
     )
     
     model = DecisionTreeRegressor(random_state=config.RANDOM_STATE, max_depth=10)
-    model.fit(X_train, y_train)
-    
+    model.fit(X_train, y_train_encoded) 
+
     y_pred = model.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
+    mse = mean_squared_error(y_test_encoded, y_pred)
+    r2 = r2_score(y_test_encoded, y_pred)
     
     print(f"Decision Tree - MSE: {mse:.4f}, R²: {r2:.4f}")
     
